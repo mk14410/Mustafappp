@@ -1,73 +1,71 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_sqlalchemy import SQLAlchemy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Heart</title>
 
-app = Flask(__name__)
-app.secret_key = 'iraq_tech_2024'
-
-# إعداد قاعدة البيانات (سيتم إنشاء ملف باسم devices.db)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///devices.db'
-db = SQLAlchemy(app)
-
-# تعريف جدول الأجهزة في قاعدة البيانات
-class Device(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    price = db.Column(db.String(50))
-    battery = db.Column(db.String(20))
-    memory = db.Column(db.String(20))
-    ram = db.Column(db.String(20))
-    image_url = db.Column(db.String(500))
-
-# بيانات المشرفين الثلاثة
-ADMINS = {
-    "admin1": "1234",
-    "admin2": "5678",
-    "admin3": "9000"
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#111;
+    perspective:1000px;
 }
 
-@app.route('/')
-def index():
-    devices = Device.query.order_by(Device.id.desc()).all()
-    return render_template('index.html', devices=devices)
+.heart{
+    width:120px;
+    height:120px;
+    position:relative;
+    transform-style:preserve-3d;
+    animation:rotate 6s linear infinite, beat 1s infinite;
+}
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user = request.form.get('username')
-        pw = request.form.get('password')
-        if user in ADMINS and ADMINS[user] == pw:
-            session['logged_in'] = True
-            session['user'] = user
-            return redirect(url_for('admin_panel'))
-        flash('خطأ في اسم المستخدم أو كلمة المرور')
-    return render_template('login.html')
+.heart::before,
+.heart::after{
+    content:"";
+    position:absolute;
+    width:120px;
+    height:120px;
+    background:red;
+    border-radius:50%;
+}
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin_panel():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    
-    if request.method == 'POST':
-        new_device = Device(
-            name=request.form.get('name'),
-            price=request.form.get('price'),
-            battery=request.form.get('battery'),
-            memory=request.form.get('memory'),
-            ram=request.form.get('ram'),
-            image_url=request.form.get('image_url')
-        )
-        db.session.add(new_device)
-        db.session.commit()
-        return redirect(url_for('index'))
-    
-    return render_template('admin.html')
+.heart::before{
+    left:-60px;
+}
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('index'))
+.heart::after{
+    top:-60px;
+}
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all() # إنشاء قاعدة البيانات عند أول تشغيل
-    app.run(debug=True)
+.square{
+    position:absolute;
+    width:120px;
+    height:120px;
+    background:red;
+    transform:rotate(45deg);
+}
+
+@keyframes rotate{
+    0%{ transform:rotateY(0deg) rotateX(0deg); }
+    100%{ transform:rotateY(360deg) rotateX(360deg); }
+}
+
+@keyframes beat{
+    0%,100%{ scale:1; }
+    50%{ scale:1.2; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="heart">
+<div class="square"></div>
+</div>
+
+</body>
+</html>
